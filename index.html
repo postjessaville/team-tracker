@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SewcialOps Team Availability Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .clock {
+            background: #f0f4f8;
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: 2px solid #cbd5e0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+            min-width: 200px;
+            text-align: center;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .legend {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .legend h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 18px;
+        }
+        
+        .legend-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .legend-color {
+            width: 30px;
+            height: 30px;
+            border-radius: 5px;
+            border: 2px solid #ddd;
+        }
+        
+        .legend-text {
+            font-size: 14px;
+            color: #555;
+        }
+        
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+            font-size: 13px;
+        }
+        
+        /* Day separator borders */
+        td:nth-child(5), th:nth-child(5),
+        td:nth-child(9), th:nth-child(9),
+        td:nth-child(13), th:nth-child(13),
+        td:nth-child(17), th:nth-child(17) {
+            border-right: 3px solid #4a5568;
+        }
+        
+        th {
+            background: #4a5568;
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .time-header {
+            background: #2d3748 !important;
+            position: sticky;
+            left: 0;
+            z-index: 11;
+        }
+        
+        .time-cell {
+            background: #f7fafc;
+            font-weight: 600;
+            position: sticky;
+            left: 0;
+            color: #2d3748;
+        }
+        
+        .day-header {
+            background: #5a67d8 !important;
+            font-size: 15px;
+        }
+        
+        .member-header {
+            background: #2d3748 !important;
+            font-size: 12px;
+        }
+        
+        .lunch-row {
+            background: #f1f1f1;
+        }
+        
+        .break-row {
+            background: #e8f4f8;
+        }
+        
+        .status-available { background: #68b684; color: white; }
+        .status-busy { background: #e07a7a; color: white; }
+        .status-flexible { background: #d4b957; color: white; }
+        .status-lunch { background: #8e9aaf; color: white; }
+        .status-break { background: #7eb8da; color: white; }
+        .status-ooo { background: #b8c5d0; color: #555; }
+        .status-blank { background: #f5f5f5; color: #999; }
+        
+        .cell-editable {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .cell-editable:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+        
+        .status-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .tip-box {
+            background: #ebf8ff;
+            border: 2px solid #90cdf4;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 25px;
+        }
+        
+        .tip-box h4 {
+            color: #2c5282;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        .tip-box p {
+            color: #2d3748;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #5a67d8;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #4c51bf;
+            transform: translateY(-2px);
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+                padding: 20px;
+            }
+            .controls, .tip-box {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-section">
+            <h1>📅 SewcialOps Team Availability Tracker</h1>
+            <div class="clock" id="clock">Loading...</div>
+        </div>
+        <p class="subtitle">Click on any cell to change status</p>
+        
+        <div class="controls">
+            <button class="btn btn-primary" onclick="window.print()">🖨️ Print Schedule</button>
+        </div>
+        
+        <div class="legend">
+            <h3>📊 Status Legend</h3>
+            <div class="legend-items">
+                <div class="legend-item">
+                    <div class="legend-color status-available"></div>
+                    <span class="legend-text">Available for meetings</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color status-busy"></div>
+                    <span class="legend-text">Busy/Unavailable</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color status-flexible"></div>
+                    <span class="legend-text">Flexible (can interrupt)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color status-lunch"></div>
+                    <span class="legend-text">Lunch break</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color status-break"></div>
+                    <span class="legend-text">Break time</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color status-ooo"></div>
+                    <span class="legend-text">Out of office</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="table-wrapper">
+            <table id="scheduleTable">
+                <thead>
+                    <tr>
+                        <th class="time-header">⏰ Time</th>
+                        <th colspan="4" class="day-header">Monday</th>
+                        <th colspan="4" class="day-header">Tuesday</th>
+                        <th colspan="4" class="day-header">Wednesday</th>
+                        <th colspan="4" class="day-header">Thursday</th>
+                        <th colspan="4" class="day-header">Friday</th>
+                    </tr>
+                    <tr>
+                        <th class="time-header"></th>
+                        <th class="member-header">Jessa</th>
+                        <th class="member-header">Nhips</th>
+                        <th class="member-header">Keanna</th>
+                        <th class="member-header">Ivy</th>
+                        <th class="member-header">Jessa</th>
+                        <th class="member-header">Nhips</th>
+                        <th class="member-header">Keanna</th>
+                        <th class="member-header">Ivy</th>
+                        <th class="member-header">Jessa</th>
+                        <th class="member-header">Nhips</th>
+                        <th class="member-header">Keanna</th>
+                        <th class="member-header">Ivy</th>
+                        <th class="member-header">Jessa</th>
+                        <th class="member-header">Nhips</th>
+                        <th class="member-header">Keanna</th>
+                        <th class="member-header">Ivy</th>
+                        <th class="member-header">Jessa</th>
+                        <th class="member-header">Nhips</th>
+                        <th class="member-header">Keanna</th>
+                        <th class="member-header">Ivy</th>
+                    </tr>
+                </thead>
+                <tbody id="scheduleBody">
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="tip-box">
+            <h4>💡 How to use this tracker:</h4>
+            <p>
+                <strong>Click any colored cell</strong> to cycle through statuses (Blank → Available → Busy → Flexible → Lunch → Break → Out of Office). 
+                Look for columns with mostly green to find the best meeting times. You can print this schedule using the Print button above.
+            </p>
+            <p style="margin-top: 10px;">
+                <strong>🌐 Live Sharing:</strong> This tracker is now live! Share this page URL with your team members. 
+                Any changes made by anyone will be visible to all users within 5 seconds. Everyone accessing this tracker sees the same real-time schedule.
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        const timeSlots = [
+            '7:00 AM', '8:00 AM', '9:00 AM', '9:45 AM - 10:00 AM', '10:00 AM', '11:00 AM',
+            'Lunch Break', '1:00 PM', '2:00 PM', '3:00 PM - 3:15 PM', '3:15 PM', '4:00 PM'
+        ];
+        
+        const statusCycle = ['blank', 'available', 'busy', 'flexible', 'lunch', 'break', 'ooo'];
+        const statusLabels = {
+            'available': 'Available',
+            'busy': 'Busy',
+            'flexible': 'Flexible',
+            'lunch': 'Lunch',
+            'break': 'Break',
+            'ooo': 'Out',
+            'blank': '-'
+        };
+        
+        // Get current day of week (0 = Sunday, 1 = Monday, etc.)
+        function getCurrentDayIndex() {
+            const today = new Date();
+            const dayOfWeek = today.getDay();
+            // Convert to Monday = 0, Tuesday = 1, etc. (return -1 for weekend)
+            if (dayOfWeek === 0 || dayOfWeek === 6) return -1; // Weekend
+            return dayOfWeek - 1; // Monday = 0, Friday = 4
+        }
+        
+        // Get Monday of current week and format dates
+        function getWeekDates() {
+            const today = new Date();
+            const dayOfWeek = today.getDay();
+            const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Adjust to Monday
+            const monday = new Date(today);
+            monday.setDate(today.getDate() + diff);
+            
+            const dates = [];
+            const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+            
+            for (let i = 0; i < 5; i++) {
+                const date = new Date(monday);
+                date.setDate(monday.getDate() + i);
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const year = date.getFullYear();
+                dates.push(`${dayNames[i]} ${month}/${day}/${year}`);
+            }
+            
+            return dates;
+        }
+        
+        // Sample schedule for full week - 5 days x 4 team members = 20 columns per time slot
+        // Initialize all cells with 'blank' status
+        let scheduleData = [
+            // 7:00 AM
+            ['busy', 'available', 'available', 'ooo', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'],
+            // 8:00 AM
+            ['busy', 'busy', 'available', 'ooo', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'],
+            // 9:00 AM
+            ['busy', 'busy', 'available', 'available', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'],
+            // 9:45 AM - 10:00 AM (1st Break)
+            ['break', 'break', 'break', 'break', 'break', 'break', 'break', 'break', 'break', 'break', 'break', 'break', 'break', 'break', 'break', 'break', 'break', 'break', 'break', 'break'],
+            // 10:00 AM
+            ['available', 'busy', 'available', 'available', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'],
+            // 11:00 AM
+            ['available', 'available', 'busy', 'busy', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'],
+            // Lunch Break
+            ['lunch', 'lunch', 'lunch', 'lunch', 'lunch', 'lunch', 'lunch', 'lunch', 'lunch', 'lunch', 'lunch', 'lunch', 'lunch', 'lunch', 'lunch', 'lunch', 'lunch', 'lunch', 'lunch', 'lunch'],
+            // 1:00 PM
+            ['busy', 'flexible', 'busy', 'busy', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'],
+            // 2:00 PM
+            ['busy', 'available', 'available', 'busy', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'],
+            // 3:00 PM - 3:15 PM (2nd Break)
+            ['break', 'break', 'break', 'break', 'break', 'break', 'break', 'break', 'break', 'break', 'break', 'break', 'break', 'break', 'break', 'break', 'break', 'break', 'break', 'break'],
+            // 3:15 PM
+            ['available', 'available', 'available', 'busy', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'],
+            // 4:00 PM
+            ['available', 'available', 'available', 'available', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank']
+        ];
+        
+        // Load schedule from shared storage
+        async function loadSchedule() {
+            try {
+                const result = await window.storage.get('sewcialops-schedule', true);
+                if (result && result.value) {
+                    const savedData = JSON.parse(result.value);
+                    scheduleData = savedData;
+                }
+            } catch (error) {
+                console.log('No saved schedule found, using default');
+            }
+            renderSchedule();
+        }
+        
+        // Save schedule to shared storage
+        async function saveSchedule() {
+            try {
+                await window.storage.set('sewcialops-schedule', JSON.stringify(scheduleData), true);
+            } catch (error) {
+                console.error('Failed to save schedule:', error);
+            }
+        }
+        
+        function renderSchedule() {
+            const tbody = document.getElementById('scheduleBody');
+            tbody.innerHTML = '';
+            
+            const weekDates = getWeekDates();
+            
+            // Update header with dates
+            const dayHeaders = document.querySelectorAll('.day-header');
+            dayHeaders.forEach((header, index) => {
+                if (index < weekDates.length) {
+                    header.textContent = weekDates[index];
+                }
+            });
+            
+            timeSlots.forEach((time, timeIndex) => {
+                const row = document.createElement('tr');
+                if (time === 'Lunch Break') {
+                    row.className = 'lunch-row';
+                } else if (time.includes('9:45') || time.includes('3:00 PM - 3:15')) {
+                    row.className = 'break-row';
+                }
+                
+                const timeCell = document.createElement('td');
+                timeCell.className = 'time-cell';
+                timeCell.textContent = time;
+                row.appendChild(timeCell);
+                
+                for (let i = 0; i < 20; i++) {
+                    const cell = document.createElement('td');
+                    const status = scheduleData[timeIndex][i];
+                    cell.className = `cell-editable status-${status}`;
+                    cell.innerHTML = `<div class="status-label">${statusLabels[status]}</div>`;
+                    cell.dataset.timeIndex = timeIndex;
+                    cell.dataset.cellIndex = i;
+                    cell.onclick = () => cycleStatus(timeIndex, i);
+                    row.appendChild(cell);
+                }
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        function updateClock() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            };
+            document.getElementById('clock').textContent = now.toLocaleString('en-US', options);
+        }
+        
+        function cycleStatus(timeIndex, cellIndex) {
+            const currentStatus = scheduleData[timeIndex][cellIndex];
+            const currentIndex = statusCycle.indexOf(currentStatus);
+            const nextIndex = (currentIndex + 1) % statusCycle.length;
+            scheduleData[timeIndex][cellIndex] = statusCycle[nextIndex];
+            saveSchedule();
+            renderSchedule();
+        }
+        
+        // Initialize
+        loadSchedule();
+        updateClock();
+        setInterval(updateClock, 1000); // Update clock every second
+        
+        // Auto-refresh schedule every 5 seconds to show changes from other users
+        setInterval(loadSchedule, 5000);
+    </script>
+</body>
+</html>
